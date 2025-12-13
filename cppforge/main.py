@@ -17,14 +17,14 @@ def is_valid_identifier(name: str) -> bool:
     """
     Check if the provided name is a valid C++ identifier and compatible with CMake/Ninja.
     - Must start with a letter.
-    - Can contain letters, numbers, and underscores.
+    - Can contain letters, numbers, and dashes.
     - Must not be empty.
     """
     if not name:
         return False
     if not name[0].isalpha():
         return False
-    if not all(c.isalnum() or c == '_' for c in name):
+    if not all(c.isalnum() or c == '-' for c in name):
         return False
     return True
 
@@ -34,32 +34,13 @@ def is_project_directory() -> bool:
     """
     return os.path.exists('CMakeLists.txt')
 
-def display_help():
-    """
-    Display help information about available commands.
-    """
-    print("C++ Project Builder Help")
-    print("========================")
-    print("Commands:")
-    print("  class <class_name> [--m]: Generate a C++ class header file or a module class.")
-    print("  module <module_name>: Generates a new module implementation file.")
-    print("  new <proj_name> [--prod]: Create a new project.")
-    print("  spinup: Spin up a Docker container for development.")
-    print("")
-    print("Examples:")
-    print("  ./script.py class MyClass")
-    print("  ./script.py module MyModule")
-    print("  ./script.py new MyProject --prod")
-    print("  ./script.py spinup")
-    print("")
-    print("Notes:")
-    print("  - Class and module names must be valid C++ identifiers.")
-    print("  - Ensure you are in a project directory (has CMakeLists.txt) to run class/module commands.")
-    print("  - Use '--help' for this summary.")
-
 def generate_class(name: str):
     """
-    Generate an include C++ class header file.
+    Generate an include C++ class header file and implementation file.
+
+    Usage:
+        cppforge class <className>
+    
     Args:
         name (str): Class name.
     """
@@ -78,8 +59,11 @@ def generate_class(name: str):
 def generate_module_class(name: str):
     """
     Generate a class that uses modules.
+    Usage:
+        cppforge class <className> --m
     Args:
         name (str): Class Name.
+        --m: Creates the class a module
     """
     path = get_templates_path()
     module = path / "class.ixx.template"
@@ -89,6 +73,8 @@ def generate_module_class(name: str):
 def generate_module(module_name: str):
     """
     Generate a C++ module implementation file.
+    Usage:
+        cppforge module <moduleName>
     Args:
         module_name (str): Module name.
     """
@@ -125,14 +111,8 @@ def main():
     # Spin Up Docker Container
     docker_parser = subparsers.add_parser("spinup", help="Spinup a docker container")
 
-    # Help Command
-    help_parser = subparsers.add_parser("help", help="Show this help message and exit.")
-
     args = parser.parse_args()
 
-    if args.command == "help":
-        display_help()
-        return
 
     # Execute commands based on user input
     if args.command in ("class", "module"):
@@ -168,7 +148,6 @@ def main():
         compose_file = "/home/vanica/Scripts/cpp_cons/docker-compose.yml"
         spinup(compose_file, container_name="gcc-clang-dev")
 
-    print("\nDone. Your files have been generated successfully!")
 
 if __name__ == "__main__":
     main()
