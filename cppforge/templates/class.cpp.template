@@ -1,0 +1,22 @@
+#include "{{ ClassName }}.hpp"
+#include <iostream>
+
+using namespace std;
+
+// Constructor
+{{ ClassName }}::{{ ClassName }}(string n_val) : name(n_val) {}
+
+// Accessor method for name
+const string &{{ ClassName }}::get_name() const {
+    return name;
+}
+
+// Example increment method (you can replace it with specific logic)
+void {{ ClassName }}::increment() {
+    cout << "Increment method called on {{ ClassName }}" << endl;
+}
+
+// Display method to print information about the {{ ClassName }}
+string {{ ClassName }}::display() const {
+    return "Name: " + name;
+}

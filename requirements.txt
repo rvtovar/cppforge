@@ -1,0 +1,4 @@
+# Editable install with no version control (cppforge==0.1.0)
+-e /home/vanica/Developer/projcts/cppforge
+Jinja2==3.1.6
+MarkupSafe==3.0.3

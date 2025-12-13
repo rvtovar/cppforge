@@ -1,0 +1,38 @@
+module;
+#include <iostream>
+#include <string>
+
+export module {{ ModuleName }};
+
+using namespace std;
+
+
+class {{ClassName}}
+{
+	private:
+		string name;
+	public:
+		{{ClassName}}(string n_val);
+		const string &get_name() const;
+		void increment();
+		string display() const;
+};
+
+
+// Constructor
+{{ ClassName }}::{{ ClassName }}(string n_val) : name(n_val) {}
+
+// Accessor method for name
+const string &{{ ClassName }}::get_name() const {
+    return name;
+}
+
+// Increment method (example method for logic)
+void {{ ClassName }}::increment() {
+    cout << "Increment method called on {{ ClassName }}" << endl;
+}
+
+// Display method for {{ ClassName }}
+string {{ ClassName }}::display() const {
+    return "Name: " + name;
+}

@@ -1,0 +1,7 @@
+# Ignore build directory
+CMakeFiles/
+build/
+.cache
+.git
+build_errors.log
+.env

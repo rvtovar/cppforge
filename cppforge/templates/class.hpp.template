@@ -1,0 +1,24 @@
+#pragma once
+#include <string>
+
+using namespace std;
+
+class {{ ClassName }}
+{
+  private:
+    // Private member variables (example provided for reference; remove as needed)
+    string name; 
+
+  public:
+    // Constructor
+    {{ ClassName }}(string n_val);
+
+    // Accessor methods
+    const string &get_name() const;
+
+    // Example increment method (remove or replace as needed)
+    void increment();
+
+    // Display information about the {{ ClassName }}
+    string display() const;
+};
