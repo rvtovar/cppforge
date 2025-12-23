@@ -41,10 +41,8 @@ def create_new_project(name, prod_mode):
     write_file_from_template(temp_path / ".clangd.template", os.path.join(project_dir, ".clangd"), context)
     write_file_from_template(temp_path / ".clang-format.template", os.path.join(project_dir, ".clang-format"), context)
     write_file_from_template(temp_path / ".gitignore.template", os.path.join(project_dir, ".gitignore"), context)
-    write_file_from_template(temp_path / "bootstrap.sh.template", os.path.join(project_dir, "bootstrap.sh"), context)
+
 
     # Adjust permissions for the bootstrap script
-    os.chmod(os.path.join(project_dir, "bootstrap.sh"), 0o755)
-
     print(f"Project {name} successfully created in {project_dir}!")
     print("Don't forget to run: vcpkg install to install dependencies.")

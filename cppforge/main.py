@@ -5,149 +5,183 @@ from cppforge.class_builder import create_class
 from cppforge.module_builder import create_new_module
 from cppforge.class_module_builder import create_class_module
 from cppforge.new_project import create_new_project
+from cppforge.generate import generate_and_build, build_and_run, build, run
 from cppforge.docker_spinup import spinup
 from importlib.resources import files
+from pathlib import Path
 
-# Helper function for generating a class
+
+# -------------------- Utility Functions -------------------- #
 def get_templates_path():
-    temp_path = files('cppforge').joinpath('templates')
-    return temp_path
+    """Get the path to the templates directory."""
+    return files('cppforge').joinpath('templates')
+
 
 def is_valid_identifier(name: str) -> bool:
     """
-    Check if the provided name is a valid C++ identifier and compatible with CMake/Ninja.
+    Validate the provided identifier for CMake/Ninja compatibility.
     - Must start with a letter.
     - Can contain letters, numbers, and dashes.
     - Must not be empty.
     """
-    if not name:
-        return False
-    if not name[0].isalpha():
-        return False
-    if not all(c.isalnum() or c == '-' for c in name):
-        return False
-    return True
+    return name and name[0].isalpha() and all(c.isalnum() or c == '-' for c in name)
+
 
 def is_project_directory() -> bool:
     """
     Check if the current directory contains a `CMakeLists.txt` file.
     """
-    return os.path.exists('CMakeLists.txt')
+    return Path("CMakeLists.txt").is_file()
 
+
+# -------------------- Command Implementations -------------------- #
 def generate_class(name: str):
     """
-    Generate an include C++ class header file and implementation file.
-
-    Usage:
-        cppforge class <className>
-    
-    Args:
-        name (str): Class name.
+    Generate a C++ class header and implementation file.
     """
     print(f"Generating class header file for '{name}'...")
     path = get_templates_path()
-    header = path / "class.hpp.template"
-    impl = path / "class.cpp.template"
     create_class(
         name=name,
-        header_template=header,
-        impl_template=impl
+        header_template=path / "class.hpp.template",
+        impl_template=path / "class.cpp.template"
     )
-    print(f"Class '{name}' generated successfully in 'include/{name}.hpp'.")
-    print(f"Class '{name}' generated successfully in 'src/{name}.cpp'.")
+    print(f"Class '{name}' generated successfully in 'include/{name}.hpp' and 'src/{name}.cpp'.")
+
 
 def generate_module_class(name: str):
     """
-    Generate a class that uses modules.
-    Usage:
-        cppforge class <className> --m
-    Args:
-        name (str): Class Name.
-        --m: Creates the class a module
+    Generate a C++ module-based class.
     """
+    print(f"Generating a class '{name}' using modules...")
     path = get_templates_path()
-    module = path / "class.ixx.template"
-    create_class_module(name, name, module)
-    print(f"Generating a class {name} using modules")
+    create_class_module(name, name, path / "class.ixx.template")
+
 
 def generate_module(module_name: str):
     """
     Generate a C++ module implementation file.
-    Usage:
-        cppforge module <moduleName>
-    Args:
-        module_name (str): Module name.
     """
-    print(f"Generating module file '{module_name}'")
+    print(f"Generating module file '{module_name}'...")
     path = get_templates_path()
-    module = path / "module.ixx.template"
-    create_new_module(module_name, module)
+    create_new_module(module_name, path / "module.ixx.template")
     print(f"Module '{module_name}' generated successfully in 'src/{module_name}.ixx'.")
 
-def main():
-    # Setup Command-Line Argument Parser
-    parser = argparse.ArgumentParser(
-        description="C++ Project Builder, Class and Module creator, and Docker spinup",
-        epilog="Generate C++ classes and modules with ease."
-    )
 
-    # Command options
+def configure_parsers(parser):
+    """
+    Configure the command-line argument parser with subcommands and their arguments.
+
+    Args:
+        parser (argparse.ArgumentParser): The main parser object.
+    """
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Generate Class Command
+    # Class Command
     class_parser = subparsers.add_parser("class", help="Generate a C++ class header file.")
     class_parser.add_argument("class_name", type=str, help="The name of the class to generate.")
-    class_parser.add_argument("--m", action="store_true", help="Make it a module")
+    class_parser.add_argument("--m", action="store_true", help="Generate a module-based class.")
 
-    # Generate Module Command
+    # Module Command
     module_parser = subparsers.add_parser("module", help="Generate a C++ module implementation file.")
     module_parser.add_argument("module_name", type=str, help="The name of the module to generate.")
 
-    # Create A New Project
-    proj_parser = subparsers.add_parser("new", help="Generates a new Project")
-    proj_parser.add_argument("proj_name", type=str, help="Name of the Project")
-    proj_parser.add_argument("--prod", action="store_true", help="Create in Release Mode")
+    # Project Command
+    proj_parser = subparsers.add_parser("new", help="Generate a new C++ project.")
+    proj_parser.add_argument("proj_name", type=str, help="The name of the project.")
+    proj_parser.add_argument("--prod", action="store_true", help="Create the project in release mode.")
 
-    # Spin Up Docker Container
-    docker_parser = subparsers.add_parser("spinup", help="Spinup a docker container")
+    # Docker Spinup Command
+    docker_parser = subparsers.add_parser("spinup", help="Spin up a Docker container for development.")
 
+    # Generate Command
+    gen_parser = subparsers.add_parser("generate", help="Generate build configurations using CMakePresets.json.")
+    gen_parser.add_argument("--preset", required=True, help="CMake configure preset to use.")
+    gen_parser.add_argument(
+        "--export-compile-commands",
+        action="store_true",
+        default=True,
+        help="Export compile_commands.json during generate process (default: True)"
+    )
+    gen_parser.add_argument(
+        "--no-export-compile-commands",
+        action="store_false",
+        dest="export_compile_commands",
+        help="Disable export of compile_commands.json."
+    )
+
+    # Build and Run Command
+    build_run_parser = subparsers.add_parser("build-run", help="Build the project and run the target executable.")
+    build_run_parser.add_argument("--preset", required=True, help="CMake configure preset to use.")
+    build_run_parser.add_argument(
+        "--executable",
+        default=None,
+        help="Optional. Path to the target executable. If not provided, the project name from CMakeLists.txt will be used."
+    )
+    
+    build_parser=subparsers.add_parser("build", help="Buld the Project")
+    build_parser.add_argument("--preset", required=True,help="Cmake Configure preset to use.")
+
+    run_parser = subparsers.add_parser("run", help="Run Project")
+    run_parser.add_argument("--preset", required=True,help="Cmake configure preset to use")
+    run_parser.add_argument("--executable",default=None,help="Optional.Path to the target executable")
+
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="C++ Project Builder, Class and Module Creator, Build/Run System, and Docker Integration",
+        epilog="Generate, build, and run C++ projects with ease."
+    )
+
+    # Configure the parsers
+    configure_parsers(parser)
+
+    # Parse arguments from the command line
     args = parser.parse_args()
 
-
-    # Execute commands based on user input
+    # Determine which command was called and execute it
     if args.command in ("class", "module"):
         if not is_project_directory():
             print("Error: You must be in a project directory (must contain a CMakeLists.txt file) to run this command.")
             return
 
-    if args.command == "class":
-        if not is_valid_identifier(args.class_name):
-            print(f"Error: Invalid class name '{args.class_name}'. Ensure it starts with a letter and includes only letters, numbers, and underscores.")
-            return
-        
-        if args.m:
-            generate_module_class(args.class_name)
-        else:
-            generate_class(args.class_name)
+    match args.command:
+        case "class":
+            if not is_valid_identifier(args.class_name):
+                print(f"Error: Invalid class name '{args.class_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                return
+            if args.m:
+                generate_module_class(args.class_name)
+            else:
+                generate_class(args.class_name)
 
-    elif args.command == "module":
-        if not is_valid_identifier(args.module_name):
-            print(f"Error: Invalid module name '{args.module_name}'. Ensure it starts with a letter and includes only letters, numbers, and underscores.")
-            return
-        
-        generate_module(args.module_name)
+        case "module":
+            if not is_valid_identifier(args.module_name):
+                print(f"Error: Invalid module name '{args.module_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                return
+            generate_module(args.module_name)
 
-    elif args.command == "new":
-        if not is_valid_identifier(args.proj_name):
-            print(f"Error: Invalid project name '{args.proj_name}'. Ensure it starts with a letter and includes only letters, numbers, and underscores.")
-            return
-        
-        create_new_project(args.proj_name, prod_mode=args.prod)
+        case "new":
+            if not is_valid_identifier(args.proj_name):
+                print(f"Error: Invalid project name '{args.proj_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                return
+            create_new_project(args.proj_name, prod_mode=args.prod)
 
-    elif args.command == "spinup":
-        compose_file = "/home/vanica/Scripts/cpp_cons/docker-compose.yml"
-        spinup(compose_file, container_name="gcc-clang-dev")
+        case "spinup":
+            compose_file = "/home/vanica/Scripts/cpp_cons/docker-compose.yml"
+            spinup(compose_file, container_name="gcc-clang-dev")
 
+        case "generate":
+            generate_and_build(args.preset, args.export_compile_commands)
+
+        case "build-run":
+            build_and_run(args.preset, executable=args.executable)
+
+        case "build":
+            build(args.preset)
+        case "run":
+            run(args.preset, executable=args.executable)
 
 if __name__ == "__main__":
     main()

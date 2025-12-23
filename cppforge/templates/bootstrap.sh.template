@@ -1,9 +1,0 @@
-#!/bin/bash
-# Bootstrap project
-
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --preset cpp-dev
-!/bin/bash
-# Bootstrap project
-
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --preset cpp-dev
-
