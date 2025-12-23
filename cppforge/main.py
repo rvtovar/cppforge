@@ -80,7 +80,7 @@ def configure_parsers(parser):
     # Class Command
     class_parser = subparsers.add_parser("class", help="Generate a C++ class header file.")
     class_parser.add_argument("class_name", type=str, help="The name of the class to generate.")
-    class_parser.add_argument("--m", action="store_true", help="Generate a module-based class.")
+    class_parser.add_argument("-m", "--module", action="store_true", help="Generate a module-based class.")
 
     # Module Command
     module_parser = subparsers.add_parser("module", help="Generate a C++ module implementation file.")
@@ -89,22 +89,22 @@ def configure_parsers(parser):
     # Project Command
     proj_parser = subparsers.add_parser("new", help="Generate a new C++ project.")
     proj_parser.add_argument("proj_name", type=str, help="The name of the project.")
-    proj_parser.add_argument("--prod", action="store_true", help="Create the project in release mode.")
+    proj_parser.add_argument("-p", "--prod", action="store_true", help="Create the project in release mode.")
 
     # Docker Spinup Command
     docker_parser = subparsers.add_parser("spinup", help="Spin up a Docker container for development.")
 
     # Generate Command
     gen_parser = subparsers.add_parser("generate", help="Generate build configurations using CMakePresets.json.")
-    gen_parser.add_argument("--preset", required=True, help="CMake configure preset to use.")
+    gen_parser.add_argument("-p", "--preset", required=True, help="CMake configure preset to use.")
     gen_parser.add_argument(
-        "--export-compile-commands",
+        "-e", "--export-compile-commands",
         action="store_true",
         default=True,
         help="Export compile_commands.json during generate process (default: True)"
     )
     gen_parser.add_argument(
-        "--no-export-compile-commands",
+        "-n", "--no-export-compile-commands",
         action="store_false",
         dest="export_compile_commands",
         help="Disable export of compile_commands.json."
@@ -112,20 +112,25 @@ def configure_parsers(parser):
 
     # Build and Run Command
     build_run_parser = subparsers.add_parser("build-run", help="Build the project and run the target executable.")
-    build_run_parser.add_argument("--preset", required=True, help="CMake configure preset to use.")
+    build_run_parser.add_argument("-p", "--preset", required=True, help="CMake configure preset to use.")
     build_run_parser.add_argument(
-        "--executable",
+        "-e", "--executable",
         default=None,
         help="Optional. Path to the target executable. If not provided, the project name from CMakeLists.txt will be used."
     )
-    
-    build_parser=subparsers.add_parser("build", help="Buld the Project")
-    build_parser.add_argument("--preset", required=True,help="Cmake Configure preset to use.")
 
-    run_parser = subparsers.add_parser("run", help="Run Project")
-    run_parser.add_argument("--preset", required=True,help="Cmake configure preset to use")
-    run_parser.add_argument("--executable",default=None,help="Optional.Path to the target executable")
+    # Build Command
+    build_parser = subparsers.add_parser("build", help="Build the Project.")
+    build_parser.add_argument("-p", "--preset", required=True, help="CMake configure preset to use.")
 
+    # Run Command
+    run_parser = subparsers.add_parser("run", help="Run the Project.")
+    run_parser.add_argument("-p", "--preset", required=True, help="CMake configure preset to use.")
+    run_parser.add_argument(
+        "-e", "--executable",
+        default=None,
+        help="Optional. Path to the target executable. If not provided, the project name from CMakeLists.txt will be used."
+    )
 
 
 def main():
