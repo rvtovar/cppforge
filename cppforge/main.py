@@ -6,6 +6,7 @@ from cppforge.module_builder import create_new_module
 from cppforge.class_module_builder import create_class_module
 from cppforge.new_project import create_new_project
 from cppforge.generate import generate_and_build, build_and_run, build, run
+from cppforge.config import run_setup
 from cppforge.docker_spinup import spinup
 from importlib.resources import files
 from pathlib import Path
@@ -132,6 +133,8 @@ def configure_parsers(parser):
         help="Optional. Path to the target executable. If not provided, the project name from CMakeLists.txt will be used."
     )
 
+    subparsers.add_parser("setup", help="Set up default configurations for cppforge")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -152,6 +155,9 @@ def main():
             return
 
     match args.command:
+
+        case "setup":
+            run_setup()
         case "class":
             if not is_valid_identifier(args.class_name):
                 print(f"Error: Invalid class name '{args.class_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
@@ -174,8 +180,7 @@ def main():
             create_new_project(args.proj_name, prod_mode=args.prod)
 
         case "spinup":
-            compose_file = "/home/vanica/Scripts/cpp_cons/docker-compose.yml"
-            spinup(compose_file, container_name="gcc-clang-dev")
+            spinup()
 
         case "generate":
             generate_and_build(args.preset, args.export_compile_commands)

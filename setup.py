@@ -1,19 +1,19 @@
 from setuptools import setup, find_packages
+import os
+
+
 
 setup(
     name="cppforge",
-    version="0.1.0",
+    version="0.2.0",
     description="A CLI for managing C++ projects",
-    author="Your Name",
+    author="Rose Tovar",
     packages=find_packages(),
     include_package_data=True,
-    package_data={
-        "cppforge": ["../templates/*.template"],    
-    },
     entry_points={
         "console_scripts": [
             "cppforge=cppforge.main:main",
         ],
     },
-    install_requires=["jinja2"],
+    install_requires=["jinja2", "pyyaml"],
 )

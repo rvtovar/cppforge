@@ -1,4 +1,4 @@
-# Editable install with no version control (cppforge==0.1.0)
--e /home/vanica/Developer/projcts/cppforge
+-e git+ssh://git@github.com/rvtovar/cppforge.git@dadc947d6f1d25504545b00c5408ebe9393c1bf0#egg=cppforge
 Jinja2==3.1.6
 MarkupSafe==3.0.3
+PyYAML==6.0.3

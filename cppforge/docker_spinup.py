@@ -3,10 +3,15 @@ import subprocess
 import sys
 from pathlib import Path
 import shutil
+from cppforge.config import load_config
 
-def spinup(compose_file: str, container_name: str = "gcc-clang-dev") -> None:
+def spinup() -> None:
     """Spin up a dev container, exec into it, and clean up on exit."""
+    config = load_config()
+    docker_config = config["docker"]
 
+    compose_file = docker_config["docker_compose_file"]
+    container_name = docker_config["container_name"]
     # Colors for terminal output
     RED = "\033[0;31m"
     GREEN = "\033[0;32m"
