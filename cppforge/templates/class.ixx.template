@@ -7,7 +7,7 @@ export module {{ ModuleName }};
 using namespace std;
 
 
-class {{ClassName}}
+export class {{ClassName}}
 {
 	private:
 		string name;
@@ -15,7 +15,7 @@ class {{ClassName}}
 		{{ClassName}}(string n_val);
 		const string &get_name() const;
 		void increment();
-		string display() const;
+		void display() const;
 };
 
 
@@ -33,6 +33,6 @@ void {{ ClassName }}::increment() {
 }
 
 // Display method for {{ ClassName }}
-string {{ ClassName }}::display() const {
-    return "Name: " + name;
+void {{ ClassName }}::display() const {
+    cout << "Name: " << name << endl;
 }

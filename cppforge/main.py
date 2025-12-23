@@ -10,9 +10,9 @@ from cppforge.config import run_setup
 from cppforge.docker_spinup import spinup
 from importlib.resources import files
 from pathlib import Path
+from cppforge.colors import print_error, print_success, print_info, print_warning  # Import your colors utils
 
 
-# -------------------- Utility Functions -------------------- #
 def get_templates_path():
     """Get the path to the templates directory."""
     return files('cppforge').joinpath('templates')
@@ -20,7 +20,7 @@ def get_templates_path():
 
 def is_valid_identifier(name: str) -> bool:
     """
-    Validate the provided identifier for CMake/Ninja compatibility.
+    Validate the provided identifier for CMake/Ninja compatibility (validate project/class names).
     - Must start with a letter.
     - Can contain letters, numbers, and dashes.
     - Must not be empty.
@@ -40,33 +40,41 @@ def generate_class(name: str):
     """
     Generate a C++ class header and implementation file.
     """
-    print(f"Generating class header file for '{name}'...")
+    print_info(f"Generating class header file for '{name}'...")
     path = get_templates_path()
     create_class(
         name=name,
         header_template=path / "class.hpp.template",
         impl_template=path / "class.cpp.template"
     )
-    print(f"Class '{name}' generated successfully in 'include/{name}.hpp' and 'src/{name}.cpp'.")
+    print_success(f"Class '{name}' generated successfully in 'include/{name}.hpp' and 'src/{name}.cpp'.")
 
 
 def generate_module_class(name: str):
     """
     Generate a C++ module-based class.
     """
-    print(f"Generating a class '{name}' using modules...")
+    print_info(f"Generating a class '{name}' using modules...")
     path = get_templates_path()
-    create_class_module(name, name, path / "class.ixx.template")
+    create_class_module(
+        module_name=name, 
+        class_name=name, 
+        template_path=path / "class.ixx.template"
+    )
+    print_success(f"Module Class '{name}' generated successfully in 'modules/{name}.ixx'.")
 
 
 def generate_module(module_name: str):
     """
     Generate a C++ module implementation file.
     """
-    print(f"Generating module file '{module_name}'...")
+    print_info(f"Generating module file '{module_name}'...")
     path = get_templates_path()
-    create_new_module(module_name, path / "module.ixx.template")
-    print(f"Module '{module_name}' generated successfully in 'src/{module_name}.ixx'.")
+    create_new_module(
+        name=module_name, 
+        template_path=path / "module.ixx.template"
+    )
+    print_success(f"Module '{module_name}' generated successfully in 'modules/{module_name}.ixx'.")
 
 
 def configure_parsers(parser):
@@ -148,50 +156,53 @@ def main():
     # Parse arguments from the command line
     args = parser.parse_args()
 
-    # Determine which command was called and execute it
     if args.command in ("class", "module"):
         if not is_project_directory():
-            print("Error: You must be in a project directory (must contain a CMakeLists.txt file) to run this command.")
+            print_error("You must be in a project directory (must contain a CMakeLists.txt file) to run this command.")
             return
 
-    match args.command:
+    try:
+        match args.command:
+            case "setup":
+                run_setup()
+            case "class":
+                if not is_valid_identifier(args.class_name):
+                    print_error(f"Invalid class name '{args.class_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                    return
+                if args.module:
+                    generate_module_class(args.class_name)
+                else:
+                    generate_class(args.class_name)
 
-        case "setup":
-            run_setup()
-        case "class":
-            if not is_valid_identifier(args.class_name):
-                print(f"Error: Invalid class name '{args.class_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
-                return
-            if args.m:
-                generate_module_class(args.class_name)
-            else:
-                generate_class(args.class_name)
+            case "module":
+                if not is_valid_identifier(args.module_name):
+                    print_error(f"Invalid module name '{args.module_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                    return
+                generate_module(args.module_name)
 
-        case "module":
-            if not is_valid_identifier(args.module_name):
-                print(f"Error: Invalid module name '{args.module_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
-                return
-            generate_module(args.module_name)
+            case "new":
+                if not is_valid_identifier(args.proj_name):
+                    print_error(f"Invalid project name '{args.proj_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
+                    return
+                create_new_project(args.proj_name, prod_mode=args.prod)
 
-        case "new":
-            if not is_valid_identifier(args.proj_name):
-                print(f"Error: Invalid project name '{args.proj_name}'. Ensure it starts with a letter and includes only letters, numbers, and dashes.")
-                return
-            create_new_project(args.proj_name, prod_mode=args.prod)
+            case "spinup":
+                spinup()
 
-        case "spinup":
-            spinup()
+            case "generate":
+                generate_and_build(args.preset, args.export_compile_commands)
 
-        case "generate":
-            generate_and_build(args.preset, args.export_compile_commands)
+            case "build-run":
+                build_and_run(args.preset, executable=args.executable)
 
-        case "build-run":
-            build_and_run(args.preset, executable=args.executable)
+            case "build":
+                build(args.preset)
+            case "run":
+                run(args.preset, executable=args.executable)
 
-        case "build":
-            build(args.preset)
-        case "run":
-            run(args.preset, executable=args.executable)
+    except Exception as e:
+        print_error(f"An unexpected error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()

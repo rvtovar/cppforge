@@ -1,7 +1,7 @@
 from jinja2 import Template
 import os
 
-def create_new_module(name, template_path="../templates/module.ixx.template"):
+def create_new_module(name, template_path):
     """
     Generate a new module file from a template.
 
@@ -13,7 +13,7 @@ def create_new_module(name, template_path="../templates/module.ixx.template"):
     os.makedirs("src", exist_ok=True)
 
     # Path for the new module file
-    module_path = f"src/{name}.ixx"
+    module_path = f"modules/{name}.ixx"
 
     try:
         # Read the module template

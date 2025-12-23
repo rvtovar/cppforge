@@ -1,7 +1,7 @@
 from jinja2 import Template
 import os
 
-def create_class_module(module_name, class_name, template_path="../templates/class.ixx.template"):
+def create_class_module(module_name, class_name, template_path):
     """
     Generate a basic module class implementation based on a template.
 
@@ -11,10 +11,10 @@ def create_class_module(module_name, class_name, template_path="../templates/cla
         template_path (str): The template file path.
     """
     # Ensure the `src` directory exists
-    os.makedirs("src", exist_ok=True)
+    os.makedirs("modules", exist_ok=True)
 
     # Path for the output module file
-    module_file = f"src/{module_name}.ixx"
+    module_file = f"modules/{module_name}.ixx"
 
     try:
         # Read the template file

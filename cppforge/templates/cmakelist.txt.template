@@ -10,17 +10,25 @@ set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 find_package(fmt CONFIG REQUIRED)
 
 
+# Glob all source files in src/
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
+    src/*.cpp  # Only target implementation files
+)
 
+# Glob all module interface files in the `modules/` directory
+file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
+    modules/*.ixx  # Include all .ixx files recursively
+)
 add_library({{name}}_lib STATIC)
 target_include_directories({{name}}_lib PUBLIC include)
 target_sources({{name}}_lib PUBLIC
     FILE_SET modules TYPE CXX_MODULES FILES
-    src/utilities.ixx
+	${MODULE_FILES}
 )
 target_compile_features({{name}}_lib PUBLIC cxx_std_23)
 target_link_libraries({{name}}_lib PUBLIC fmt::fmt)
 
 add_executable({{name}}
-    src/main.cpp
+    ${SRC_FILES}
 )
 target_link_libraries({{name}} PRIVATE {{name}}_lib fmt::fmt)
